@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL_USERS = 'https://pawsome-homes.onrender.com/admin/users';
+const API_URL_USERS = 'https://pawsome-homes.onrender.com/api/auth';
 
 export const getAllUsers = async () => {
   try {
