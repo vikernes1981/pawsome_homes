@@ -21,7 +21,7 @@ const cors = require('cors');
 
 const allowedOrigins = [
   'http://localhost:5173',                  // Local development frontend
-  'https://your-frontend.vercel.app'        // Replace with your actual Vercel domain
+  'https://pawsome-homes.vercel.app'        // Replace with your actual Vercel domain
 ];
 
 app.use(cors({
