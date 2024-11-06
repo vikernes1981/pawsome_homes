@@ -12,17 +12,20 @@ import chatbotRoutes from './routes/chatbotRoutes.js';
 
 
 dotenv.config();
-
-// Initialize Express app
+const cors = require('cors');
+const express = require('express');
 const app = express();
 
-// Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:5173',  // Allow local development
-    'https://pawsome-homes.vercel.app/'  // Allow production
-  ],
+  origin: ['https://pawsome-homes.vercel.app', 'http://localhost:5173'],  // Add both Vercel and local origins
+  credentials: true
 }));
+
+// Then define routes here
+app.get('/api/pets', (req, res) => {
+  // Your route logic
+});
+
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
