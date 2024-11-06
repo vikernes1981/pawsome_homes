@@ -20,20 +20,19 @@ const app = express();
 const cors = require('cors');
 
 const allowedOrigins = [
-  'http://localhost:5173',                  // Local development frontend
-  'https://pawsome-homes.vercel.app'        // Replace with your actual Vercel domain
+  'http://localhost:5173',               // Local development
+  'https://pawsome-homes.vercel.app'     // Deployed Vercel domain
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin, like mobile apps or direct API calls
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
-  }
+  },
+  credentials: true
 }));
 
 
