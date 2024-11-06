@@ -17,12 +17,14 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: [
-    'http://localhost:5173',  // Allow local development
-    'https://pawsome-homes.vercel.app/'  // Allow production
-  ],
-}));
+// app.use(cors({
+//   origin: [
+//     'http://localhost:5173',  // Allow local development
+//     'https://pawsome-homes.vercel.app/'  // Allow production
+//   ],
+// }));
+
+app.use(cors())
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
