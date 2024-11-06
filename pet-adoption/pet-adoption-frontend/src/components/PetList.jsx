@@ -10,7 +10,7 @@ const PetList = () => {
   useEffect(() => {
     const fetchPets = async () => {
       try {
-        const { data } = await axios.get('http://localhost/api/pets');
+        const { data } = await axios.get('https://pawsome-homes.onrender.com/api/pets');
         setPets(data); // Ensure data is an array
         setLoading(false); // Data is loaded
       } catch (err) {

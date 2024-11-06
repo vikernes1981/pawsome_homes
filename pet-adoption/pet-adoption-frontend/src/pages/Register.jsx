@@ -25,7 +25,7 @@ const Register = () => {
     setErrorMessage('');
 
     try {
-      await axios.post('http://localhost:5000/api/register', formData);
+      await axios.post('https://pawsome-homes.onrender.com/api/register', formData);
       setLoading(false);
       navigate('/');
     } catch (error) {

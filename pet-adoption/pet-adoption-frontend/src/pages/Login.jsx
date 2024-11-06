@@ -11,7 +11,7 @@ const Login = ({ setAuth }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/login', formData);
+      const response = await axios.post('https://pawsome-homes.onrender.com/api/login', formData);
       const { token } = response.data;
 
       localStorage.setItem('authToken', token); // Store token

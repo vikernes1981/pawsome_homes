@@ -19,7 +19,7 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://pawsome-homes.vercel.app/',
 }));
 
 // MongoDB connection

@@ -18,7 +18,7 @@ const ForgotPassword = () => {
     }
 
     try {
-      const response = await axios.patch('http://localhost:5000/api/forgot-password', {
+      const response = await axios.patch('https://pawsome-homes.onrender.com/api/forgot-password', {
         email: formData.email,
         newPassword: formData.newPassword, // Use newPassword here
       });

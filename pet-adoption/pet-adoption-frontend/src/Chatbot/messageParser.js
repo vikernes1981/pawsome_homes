@@ -13,7 +13,7 @@ class MessageParser {
 
     // Send the message to the backend
     try {
-      const response = await axios.post('http://localhost:5000/chatbot/message', {
+      const response = await axios.post('https://pawsome-homes.onrender.com/chatbot/message', {
         message: {
           chat: {
             id: chatId,

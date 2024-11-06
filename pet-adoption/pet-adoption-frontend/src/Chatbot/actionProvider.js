@@ -17,7 +17,7 @@ class ActionProvider {
   handleSendMessage = async (userMessage, chatId) => {
     if (userMessage.trim() !== "") {
       try {
-        await axios.post('http://localhost:5000/chatbot/message', {
+        await axios.post('https://pawsome-homes.onrender.com/chatbot/message', {
           message: {
             chat: {
               id: chatId,

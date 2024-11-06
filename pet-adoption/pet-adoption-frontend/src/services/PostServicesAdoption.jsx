@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL_ADOPTION ='http://localhost:5000/admin/adoption-requests';
+const API_URL_ADOPTION ='https://pawsome-homes.onrender.com/admin/adoption-requests';
 
 export const getAllRequest = async () => {
     try {
