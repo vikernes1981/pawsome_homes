@@ -17,24 +17,14 @@ dotenv.config();
 const app = express();
 
 // Middleware
-const cors = require('cors');
+// app.use(cors({
+//   origin: [
+//     'http://localhost:5173',  // Allow local development
+//     'https://pawsome-homes.vercel.app/'  // Allow production
+//   ],
+// }));
 
-const allowedOrigins = [
-  'http://localhost:5173',               // Local development
-  'https://pawsome-homes.vercel.app'     // Deployed Vercel domain
-];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
-
+app.use(cors())
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
