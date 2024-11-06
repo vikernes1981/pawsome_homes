@@ -20,7 +20,7 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:5173',  // Allow local development
-    'https://pawsome-homes.vercel.app'  // Allow production
+    'https://pawsome-homes.vercel.app/'  // Allow production
   ],
 }));
 
