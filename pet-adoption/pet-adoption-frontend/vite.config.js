@@ -7,4 +7,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ['jwt-decode'],
   },
+  build: {
+    chunkSizeWarningLimit: 1000,  // Sets the limit to 1000 kB
+  },
 });

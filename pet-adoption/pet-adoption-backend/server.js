@@ -19,10 +19,12 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: [
-    'http://localhost:5173',  // Allow local development
-    'https://pawsome-homes.vercel.app/'  // Allow production
+    'http://localhost:5173',   // Allow local development
+    'https://pawsome-homes.vercel.app'  // Allow production without the trailing slash
   ],
+  credentials: true  // Enable sending cookies or authentication headers with requests
 }));
+
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
