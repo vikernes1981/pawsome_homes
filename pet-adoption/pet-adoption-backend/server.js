@@ -35,7 +35,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/pets', petRoutes);
 app.use('/admin', adoptionRoutes);
 app.use('/admin', authRoutes);
-app.use('/api', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/adoption-requests', postRequestRoutes);
 app.use('/chatbot', chatbotRoutes);
 app.use('/api/forgot-password', authRoutes);
