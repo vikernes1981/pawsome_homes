@@ -19,11 +19,21 @@ const app = express();
 // Middleware
 const cors = require('cors');
 
+const allowedOrigins = [
+  'http://localhost:5173',               // Local development
+  'https://pawsome-homes.vercel.app'     // Deployed Vercel domain
+];
+
 app.use(cors({
-  origin: '*',  // Allow all origins temporarily
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
-
 
 
 // MongoDB connection
