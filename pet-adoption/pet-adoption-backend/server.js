@@ -20,7 +20,7 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173', // for local dev
   'https://pawsome-homes.onrender.com', // your deployed backend
-  'https://pawsome-homes-kejvrtcjo-vikernes1981s-projects.vercel.app/' // your deployed frontend
+  'https://pawsome-homes.vercel.app' // your deployed frontend
 ];
 
 // Middleware
