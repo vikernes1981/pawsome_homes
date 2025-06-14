@@ -1,70 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PetCard from '../components/PetCard';
 
 const PetList = () => {
-  const [pets, setPets] = useState([]); // Initialize as an empty array
-  const [loading, setLoading] = useState(true); // Optional: Loading state
-  const [error, setError] = useState(null); // Optional: Error handling
-  const [search, setSearch] = useState({ breed: '', location: '', type: '' }); // Search state
+  const [pets, setPets] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState({ breed: '', location: '', type: '' });
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchPets = async () => {
       try {
-        const { data } = await axios.get('https://pawsome-homes.onrender.com/api/pets');
-        setPets(data); // Ensure data is an array
-        setLoading(false); // Data is loaded
+        const { data } = await axios.get(`${API_URL}/pets`);
+        setPets(data);
+        setFiltered(data);
       } catch (err) {
         setError('Failed to load pets');
-        setLoading(false); // Stop loading in case of error
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchPets();
-  }, []);
+  }, [API_URL]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const filteredData = pets.filter((pet) => {
+        return (
+          (search.breed === '' || pet.breed.toLowerCase().includes(search.breed.toLowerCase())) &&
+          (search.location === '' || pet.location?.toLowerCase().includes(search.location.toLowerCase())) &&
+          (search.type === '' || pet.type.toLowerCase() === search.type.toLowerCase())
+        );
+      });
+      setFiltered(filteredData);
+    }, 200);
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+    return () => clearTimeout(timeout);
+  }, [search, pets]);
 
-  if (!Array.isArray(pets)) {
-    return <div>No pets available</div>; // Additional check
-  }
+  if (loading) return <div className="text-center mt-10 text-white">Loading...</div>;
+  if (error) return <div className="text-center mt-10 text-red-500">{error}</div>;
 
   return (
-    <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {pets.map((pet) => (
-          <div key={pet._id} className="card bg-base-100 shadow-md p-4">
-            <img src={pet.image} alt={pet.name} className="w-full h-48 object-cover rounded" />
-            <h2 className="text-lg font-bold mt-2">{pet.name}</h2>
-            <p>{pet.breed}</p>
-            <p>{pet.location}</p>
-            <p>{pet.description}</p>
-          </div>
-        ))}
-      </div>
-
-      <form className="flex gap-4 mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+      <form className="flex flex-wrap gap-4 mb-8">
         <input
           type="text"
           placeholder="Search by breed"
-          onChange={(e) => setSearch({ ...search, breed: e.target.value })}
+          className="input input-bordered"
+          onChange={(e) => setSearch((prev) => ({ ...prev, breed: e.target.value }))}
         />
         <input
           type="text"
           placeholder="Location"
-          onChange={(e) => setSearch({ ...search, location: e.target.value })}
+          className="input input-bordered"
+          onChange={(e) => setSearch((prev) => ({ ...prev, location: e.target.value }))}
         />
-        <select onChange={(e) => setSearch({ ...search, type: e.target.value })}>
+        <select
+          className="select select-bordered"
+          onChange={(e) => setSearch((prev) => ({ ...prev, type: e.target.value }))}
+        >
           <option value="">All Types</option>
           <option value="dog">Dog</option>
           <option value="cat">Cat</option>
         </select>
-        <button type="submit" className="btn btn-primary">Search</button>
       </form>
+
+      {filtered.length === 0 ? (
+        <div className="text-white text-center">No pets found matching your search.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {filtered.map((pet) => (
+            <PetCard key={pet._id} pet={pet} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

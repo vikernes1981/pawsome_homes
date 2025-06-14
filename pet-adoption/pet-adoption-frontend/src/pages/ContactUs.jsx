@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useForm, ValidationError } from '@formspree/react';
+import axios from 'axios';
 
 const ContactUs = () => {
-  const [state, handleSubmit] = useForm('mwpkllvq');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -10,8 +9,9 @@ const ContactUs = () => {
   });
 
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Handle input change
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -19,29 +19,21 @@ const ContactUs = () => {
     });
   };
 
-  const handleSubmitWrapper = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log('Form Data:', formData);
+    setErrorMessage('');
+    setSuccessMessage('');
+    setLoading(true);
 
     try {
-      // Attempt to submit the form data
-      const response = await handleSubmit(formData);
-
-      console.log('Response:', response); // Log the response for debugging
-
-      // Check the response
-      if (state.succeeded) {
-        console.log('Form submitted successfully'); // Log successful submission
-        setSuccessMessage('Thank you for your message! We will get back to you soon.');
-        setFormData({ name: '', email: '', message: '' }); // Reset form fields
-      } else {
-        console.error('Form submission failed:', response); // Log errors if the submission failed
-        alert('There was an error submitting the form. Please try again.'); // Alert the user about the error
-      }
+      await axios.post('http://localhost:5000/contact', formData);
+      setSuccessMessage('Thank you for your message! We will get back to you soon.');
+      setFormData({ name: '', email: '', message: '' });
     } catch (error) {
-      console.error('Submission error:', error); // Log any error that occurred during submission
-      alert('There was an error submitting the form. Please try again.'); // Alert the user about the error
+      console.error('Submission error:', error);
+      setErrorMessage('There was an error submitting the form. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,9 +46,13 @@ const ContactUs = () => {
           {successMessage}
         </div>
       )}
+      {errorMessage && (
+        <div className="bg-red-100 text-red-700 p-4 mb-6 rounded-lg shadow-md">
+          {errorMessage}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmitWrapper} className="space-y-6">
-        {/* Name Field */}
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-lg font-semibold text-gray-700">Your Name</label>
           <input
@@ -71,7 +67,6 @@ const ContactUs = () => {
           />
         </div>
 
-        {/* Email Field */}
         <div>
           <label htmlFor="email" className="block text-lg font-semibold text-gray-700">Email Address</label>
           <input
@@ -86,7 +81,6 @@ const ContactUs = () => {
           />
         </div>
 
-        {/* Message Field */}
         <div>
           <label htmlFor="message" className="block text-lg font-semibold text-gray-700">Your Message</label>
           <textarea
@@ -101,26 +95,16 @@ const ContactUs = () => {
           />
         </div>
 
-        {/* Submit Button */}
         <div className="text-center">
           <button
             type="submit"
+            disabled={loading}
             className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300"
-            disabled={state.submitting}
           >
-            Submit
+            {loading ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </form>
-
-      {/* Show validation errors if any */}
-      {state.errors && state.errors.length > 0 && (
-        <div className="bg-red-100 text-red-700 p-4 mb-6 rounded-lg shadow-md">
-          {state.errors.map((error) => (
-            <p key={error.field} className="text-sm">{error.message}</p>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

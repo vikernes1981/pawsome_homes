@@ -9,7 +9,7 @@ const AboutUs = () => {
       {/* Section 1: Introduction */}
       <section className="mb-6">
         <p className="text-lg text-gray-700 leading-relaxed">
-          Pet adoption is not just about finding pets a home; it's about creating new beginnings for pets and bringing joy to families. At our Pet Adoption Platform, we are committed to connecting potential adopters with pets in need of loving homes. By adopting a pet, you’re making a difference in their life and contributing to a humane and caring society.
+          Pet adoption is not just about finding pets a home; it's about creating new beginnings for pets and bringing joy to families. At our Pawsome Homes, we are committed to connecting potential adopters with pets in need of loving homes. By adopting a pet, you’re making a difference in their life and contributing to a humane and caring society.
         </p>
       </section>
 

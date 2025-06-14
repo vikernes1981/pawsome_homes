@@ -1,10 +1,12 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getAllUsers, createUser, deleteUser, updateUser } from '../services/PostServicesUsers';
+
+const EMPTY_FORM = { username: '', email: '', password: '', role: '' };
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', role: '' });
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
 
   useEffect(() => {
     fetchUsers();
@@ -12,75 +14,100 @@ const ManageUsers = () => {
 
   const fetchUsers = async () => {
     const res = await getAllUsers();
-    setUsers(res);
+    setUsers(Array.isArray(res) ? res : []);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleCreateUser = async () => {
-    await createUser(formData);
-    fetchUsers();
-    setFormData({ username: '', email: '', password: '', role: '' });
+    try {
+      await createUser(formData);
+      alert('User created successfully');
+      fetchUsers();
+      setFormData({ ...EMPTY_FORM });
+    } catch (err) {
+      console.error('Create failed:', err);
+      alert('Failed to create user');
+    }
   };
 
   const handleUpdateUser = async () => {
-    await updateUser(selectedUser._id, formData);
-    fetchUsers();
-    setSelectedUser(null);
-    setFormData({ username: '', email: '', password: '', role: '' });
+    try {
+      const updateData = { ...formData };
+      if (!formData.password) delete updateData.password; // Avoid overwriting password with empty
+      await updateUser(selectedUser._id, updateData);
+      alert('User updated');
+      fetchUsers();
+      setSelectedUser(null);
+      setFormData({ ...EMPTY_FORM });
+    } catch (err) {
+      console.error('Update failed:', err);
+      alert('Failed to update user');
+    }
   };
 
   const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await deleteUser(userId);
-      fetchUsers(); // Refresh the user list after deletion
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-      alert('Error deleting user'); // Optional: Show an alert for better UX
+      alert('User deleted');
+      fetchUsers();
+      setSelectedUser(null);
+      setFormData({ ...EMPTY_FORM });
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete user');
     }
   };
 
   const handleEditUser = (user) => {
     setSelectedUser(user);
-    setFormData({ username: user.username, email: user.email, password: '', role: user.role });
+    setFormData({
+      username: user.username,
+      email: user.email,
+      password: '', // Don't prefill
+      role: user.role,
+    });
   };
 
   const handleCancelEdit = () => {
     setSelectedUser(null);
-    setFormData({ username: '', email: '', password: '', role: '' });
+    setFormData({ ...EMPTY_FORM });
   };
 
   return (
     <div className="manage-users p-6 bg-gray-100 min-h-screen">
       <h2 className="text-2xl text-black font-semibold mb-6">Manage Users</h2>
-      <div className="space-y-4">
-        <select
-          className="select select-bordered w-full"
-          onChange={(e) => {
-            const user = users.find(user => user._id === e.target.value);
-            handleEditUser(user);
-          }}
-        >
-          <option value="">Select a user</option>
-          {users.map(user => (
-            <option key={user._id} value={user._id}>
-              {user.username} ({user.role})
-            </option>
-          ))}
-        </select>
-        {selectedUser && (
-          <div className="space-x-2 mt-4">
-            <button className="btn btn-error" onClick={() => {
-              console.log('Delete button clicked for user:', selectedUser._id); // Log when button is clicked
-              handleDeleteUser(selectedUser._id);
-            }}>Delete</button>
-            <button className="btn btn-secondary" onClick={handleCancelEdit}>Cancel</button>
-          </div>
-        )}
-      </div>
+
+      <select
+        className="select select-bordered w-full mb-4"
+        onChange={(e) => {
+          const user = users.find(u => u._id === e.target.value);
+          if (user) handleEditUser(user);
+        }}
+      >
+        <option value="">Select a user</option>
+        {users.map(user => (
+          <option key={user._id} value={user._id}>
+            {user.username} ({user.role})
+          </option>
+        ))}
+      </select>
+
+      {selectedUser && (
+        <div className="space-x-2 mb-4">
+          <button className="btn btn-error" onClick={() => handleDeleteUser(selectedUser._id)}>
+            Delete
+          </button>
+          <button className="btn btn-secondary" onClick={handleCancelEdit}>
+            Cancel
+          </button>
+        </div>
+      )}
+
       <div className="user-form mt-6 p-6 bg-white rounded shadow">
         <div className="form-control mb-4">
           <input
@@ -90,6 +117,7 @@ const ManageUsers = () => {
             onChange={handleInputChange}
             placeholder="Username"
             className="input input-bordered w-full"
+            required
           />
         </div>
         <div className="form-control mb-4">
@@ -100,6 +128,7 @@ const ManageUsers = () => {
             onChange={handleInputChange}
             placeholder="Email"
             className="input input-bordered w-full"
+            required
           />
         </div>
         <div className="form-control mb-4">
@@ -108,20 +137,25 @@ const ManageUsers = () => {
             name="password"
             value={formData.password}
             onChange={handleInputChange}
-            placeholder="Password"
+            placeholder={selectedUser ? "(Leave blank to keep current)" : "Password"}
             className="input input-bordered w-full"
+            required={!selectedUser}
           />
         </div>
         <div className="form-control mb-4">
-          <input
-            type="text"
+          <select
             name="role"
             value={formData.role}
             onChange={handleInputChange}
-            placeholder="Role"
-            className="input input-bordered w-full"
-          />
+            className="select select-bordered w-full"
+            required
+          >
+            <option value="">Select Role</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
         </div>
+
         {selectedUser ? (
           <button className="btn btn-primary w-full" onClick={handleUpdateUser}>Update User</button>
         ) : (

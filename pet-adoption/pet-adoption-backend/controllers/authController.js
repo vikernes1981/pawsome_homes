@@ -1,28 +1,32 @@
+import logger from '../services/logger.js';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
+// LOGIN
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  console.log('Login attempt:', { email, password });
+  const email = req.body.email?.trim();
+  const password = req.body.password?.trim();
+  logger.info('Login attempt:', { email });
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found:', email);
+      logger.info('User not found:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    console.log('User found:', user);
+    logger.info('User found:', user);
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password comparison result:', isMatch);
+    logger.info('Password comparison result:', isMatch);
 
     if (!isMatch) {
-      console.log('Password mismatch for user:', email);
+      logger.info('Password mismatch for user:', email);
+      logger.info('Raw request body on login:', req.body);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
@@ -31,48 +35,49 @@ export const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
-    console.log('Token generated:', token);
+    logger.info('Token generated:', token);
 
     res.json({ token });
   } catch (error) {
-    console.error('Server error during login:', error);
+    logger.error('Server error during login:', error.message);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-
+// REGISTER
 export const registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
-  console.log('Registration attempt:', { username, email, password });
+  const username = req.body.username?.trim();
+  const email = req.body.email?.trim();
+  const password = req.body.password?.trim();
+  logger.info('Registration attempt:', { username, email });
 
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log('User already exists:', email);
+      logger.info('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log('Hashed password:', hashedPassword);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    logger.info('Hashed password:', hashedPassword);
 
-    const user = new User({
-      username,
-      email,
-      password: password,
-    });
-
+    const user = new User({ username, email, password: hashedPassword });
     await user.save();
-    console.log('User registered:', user);
+    logger.info('User registered:', user);
+    logger.info('Raw request body on register:', req.body);
+
 
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Token generated:', token);
+    logger.info('Token generated:', token);
     res.status(201).json({ token });
   } catch (error) {
-    console.error('Server error during registration:', error);
+    logger.error('Server error during registration:', error.message);
     res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
 
+// USER MGMT
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().populate('favorites adoptedPets');
@@ -95,8 +100,8 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: password, role });
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    const newUser = new User({ username: username.trim(), email: email.trim(), password: hashedPassword, role });
     await newUser.save();
     res.status(201).json(newUser);
   } catch (error) {
@@ -110,9 +115,9 @@ export const updateUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    user.username = username || user.username;
-    user.email = email || user.email;
-    if (password) user.password = user.password;
+    user.username = username?.trim() || user.username;
+    user.email = email?.trim() || user.email;
+    if (password) user.password = await bcrypt.hash(password.trim(), 10);
     user.role = role || user.role;
 
     await user.save();
@@ -122,15 +127,15 @@ export const updateUser = async (req, res) => {
   }
 };
 
-
 export const updateUserPassword = async (req, res) => {
-  const { email, newPassword } = req.body;
+  const email = req.body.email?.trim();
+  const newPassword = req.body.newPassword?.trim();
 
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    user.password = user.password;
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     res.json({ success: true, message: 'Password updated successfully' });
@@ -138,7 +143,6 @@ export const updateUserPassword = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 
 export const deleteUser = async (req, res) => {
   try {

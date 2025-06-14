@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const SuggestedItems = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const items = [
     { 
       name: 'Food and Water Bowls', 

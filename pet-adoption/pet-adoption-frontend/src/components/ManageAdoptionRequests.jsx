@@ -1,120 +1,107 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
-import { getAllRequest as getAllAdoptionRequests, updateRequest as updateAdoptionRequestStatus } from "../services/PostServicesAdoption";
+import {
+  getAllAdoptions as getAllAdoptionRequests,
+  updateAdoption as updateAdoptionRequestStatus,
+} from "../services/PostServicesAdoption";
 
 const ManageAdoptionRequests = () => {
   const [requests, setRequests] = useState([]);
-  const [selectedRequest, setSelectedRequest] = useState(null); // Holds the selected request object
-  const [selectedStatus, setSelectedStatus] = useState(null); // Holds the selected status
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch the adoption requests when the component mounts
   useEffect(() => {
     fetchRequests();
   }, []);
 
-  // Fetch all the adoption requests and store them in the state
   const fetchRequests = async () => {
     const res = await getAllAdoptionRequests();
-    if (Array.isArray(res)) {
-      setRequests(res);
-    } else {
-      setRequests([]);
-      console.error("Expected an array but got:", res);
-    }
+    setRequests(Array.isArray(res) ? res : []);
   };
 
-  // Handle updating the status of the selected request
   const handleUpdateStatus = async () => {
-    if (selectedRequest && selectedStatus) {
-      try {
-        await updateAdoptionRequestStatus(selectedRequest._id, { status: selectedStatus.value });
-        fetchRequests(); // Refresh the list after the status is updated
-        setSelectedRequest(null); // Clear the selected request
-        setSelectedStatus(null); // Clear the selected status
-      } catch (error) {
-        console.error("Error updating request status:", error);
-      }
+    if (!selectedRequest || !selectedStatus) return;
+    setSubmitting(true);
+    try {
+      await updateAdoptionRequestStatus(selectedRequest._id, {
+        status: selectedStatus.value,
+      });
+      alert("Status updated successfully.");
+      fetchRequests();
+      setSelectedRequest(null);
+      setSelectedStatus(null);
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Failed to update request status.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Create options for the Select dropdown from the requests
   const requestOptions = requests.map((request) => ({
     value: request._id,
-    label: `${request.pet?.name} - ${request.status}`, // Label shows pet name and status
-    request: request, // Store the whole request object
+    label: `${request.pet?.name} - ${request.status}`,
+    request: request,
   }));
 
-  // Status options for updating a request
   const statusOptions = [
     { value: "Pending", label: "Pending" },
     { value: "Approved", label: "Approved" },
     { value: "Rejected", label: "Rejected" },
   ];
 
-  // Custom styling for the Select component
   const customStyles = {
-    control: (provided) => ({
-      ...provided,
-      backgroundColor: '#333',
-      color: '#fff',
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: '#333',
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: '#fff',
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected ? '#555' : '#333',
-      color: '#fff',
-      '&:hover': {
-        backgroundColor: '#444',
-      },
+    control: (base) => ({ ...base, backgroundColor: "#333", color: "#fff" }),
+    menu: (base) => ({ ...base, backgroundColor: "#333" }),
+    singleValue: (base) => ({ ...base, color: "#fff" }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected ? "#555" : "#333",
+      color: "#fff",
+      "&:hover": { backgroundColor: "#444" },
     }),
   };
 
   return (
     <div className="manage-requests p-4">
       <h2 className="text-2xl font-semibold text-black mb-6">Manage Adoption Requests</h2>
-      
-      {/* Select a request */}
+
       <Select
         options={requestOptions}
-        onChange={(selectedOption) => setSelectedRequest(selectedOption.request)}
+        onChange={(opt) => setSelectedRequest(opt?.request)}
         placeholder="Select a request..."
-        className="mb-6"
         styles={customStyles}
-        value={selectedRequest ? { value: selectedRequest._id, label: `${selectedRequest.pet.name} - ${selectedRequest.status}` } : null} // Set the currently selected request
+        value={
+          selectedRequest
+            ? { value: selectedRequest._id, label: `${selectedRequest.pet.name} - ${selectedRequest.status}` }
+            : null
+        }
+        className="mb-6"
       />
 
-      {/* Show the form to update the status when a request is selected */}
       {selectedRequest && (
-        <div className="update-request-form p-4 bg-gray-100 text-black shadow-md rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">Update Request Status</h3>
-          <p><strong>User:</strong> {selectedRequest.user.username}</p>
-          <p><strong>Pet Name:</strong> {selectedRequest.pet.name}</p>
+        <div className="bg-gray-100 p-6 rounded shadow-md text-black space-y-4">
+          <h3 className="text-xl font-semibold mb-2">Request Details</h3>
+          <p><strong>User:</strong> {selectedRequest.user?.username || selectedRequest.user || 'Unknown user'}</p>
+          <p><strong>Pet:</strong> {selectedRequest.pet.name}</p>
           <p><strong>Message:</strong> {selectedRequest.message}</p>
-          <p><strong>Status:</strong> {selectedRequest.status}</p>
+          <p><strong>Current Status:</strong> {selectedRequest.status}</p>
 
-          {/* Select new status */}
           <Select
             options={statusOptions}
-            onChange={(selectedOption) => setSelectedStatus(selectedOption)}
-            placeholder="Select a status..."
-            className="mb-4"
+            onChange={(opt) => setSelectedStatus(opt)}
+            value={selectedStatus}
             styles={customStyles}
-            value={selectedStatus} // Set the currently selected status
+            placeholder="Select new status..."
           />
 
-          {/* Submit button to update the status */}
           <button
             onClick={handleUpdateStatus}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+            disabled={submitting}
           >
-            Submit
+            {submitting ? "Updating..." : "Update Status"}
           </button>
         </div>
       )}

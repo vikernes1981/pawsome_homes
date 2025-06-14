@@ -18,7 +18,7 @@ export const createRequest = async (req, res) => {
       message: req.body.message,
       when: req.body.when,
     });
-
+    console.log('Incoming request payload:', req.body); // ADD THIS
     await newRequest.save();
     res.status(201).json(newRequest);
   } catch (error) {

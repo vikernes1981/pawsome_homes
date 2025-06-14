@@ -24,13 +24,19 @@ const Register = () => {
     setLoading(true);
     setErrorMessage('');
 
+    const trimmedData = {
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+      password: formData.password.trim()
+    };
+
     try {
-      await axios.post('https://pawsome-homes.onrender.com/api/auth/register', formData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/register`, trimmedData);
       setLoading(false);
       navigate('/');
     } catch (error) {
       setLoading(false);
-      setErrorMessage('Registration failed. Please try again.');
+      setErrorMessage(error.response?.data?.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -82,7 +88,7 @@ const Register = () => {
         </div>
         <button
           type="submit"
-          className={`w-full py-3 text-white bg-green-600 rounded-lg font-semibold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300 ${loading ? 'opacity-50' : ''}`}
+          className={`w-full py-3 text-white bg-green-600 rounded-lg font-semibold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           disabled={loading}
         >
           {loading ? 'Registering...' : 'Register'}

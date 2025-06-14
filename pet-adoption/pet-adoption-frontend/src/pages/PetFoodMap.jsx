@@ -2,133 +2,119 @@ import React, { useState, useEffect } from 'react';
 import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
 
-// Container style for the map
 const containerStyle = {
   width: '100%',
   height: '100%',
 };
 
-// Default center for the map
 const defaultCenter = {
-  lat: 51.1657, // Latitude for Germany
-  lng: 10.4515, // Longitude for Germany
+  lat: 51.1657,
+  lng: 10.4515,
 };
 
-// Move the libraries array outside the component
 const libraries = ['places'];
 
-const PetShops = () => {
-  const [center, setCenter] = useState(defaultCenter); // Center of the map
-  const [markers, setMarkers] = useState([]); // Markers for adoption centers
-  const [selectedMarker, setSelectedMarker] = useState(null); // To track the selected marker for the info window
-  const [loading, setLoading] = useState(false); // Loading state
-  const navigate = useNavigate(); // Initialize useNavigate
+const PetFoodMap = () => {
+  const [center, setCenter] = useState(defaultCenter);
+  const [markers, setMarkers] = useState([]);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // Use the useLoadScript hook to load the Google Maps script and Places library
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // Access the API key from the environment variable
-    libraries: libraries, // Use the declared libraries array
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries,
   });
 
-  // Function to find adoption centers using the Google Places API
   const handleFindPetShop = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        setCenter({ lat, lng });
-
-        setLoading(true);
-
-        if (window.google && window.google.maps) {
-          const map = new window.google.maps.Map(document.createElement('div'));
-          const service = new window.google.maps.places.PlacesService(map);
-
-          const request = {
-            location: { lat, lng },
-            radius: '15000', // 10 km radius
-            keyword: 'pet supply stores',
-          };
-          
-          service.nearbySearch(request, (results, status) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-              const newMarkers = results.map((place) => ({
-                position: place.geometry.location,
-                name: place.name,
-                address: place.vicinity,
-                placeId: place.place_id,
-              }));
-              setMarkers(newMarkers);
-            } else {
-              alert('No pet shops found nearby.');
-            }
-            setLoading(false);
-          });
-        } else {
-          console.error('Google Maps not available');
-        }
-      });
-    } else {
-      alert('Geolocation is not supported by this browser.');
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      setCenter({ lat, lng });
+      setLoading(true);
+
+      if (window.google && window.google.maps) {
+        const map = new window.google.maps.Map(document.createElement('div'));
+        const service = new window.google.maps.places.PlacesService(map);
+
+        const request = {
+          location: { lat, lng },
+          radius: '15000',
+          keyword: 'pet supply stores',
+        };
+
+        service.nearbySearch(request, (results, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+            const newMarkers = results.map((place) => ({
+              position: {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+              },
+              name: place.name,
+              address: place.vicinity,
+              placeId: place.place_id,
+            }));
+            setMarkers(newMarkers);
+          } else {
+            alert('No pet shops found nearby.');
+          }
+          setLoading(false);
+        });
+      } else {
+        console.error('Google Maps API not available.');
+        setLoading(false);
+      }
+    });
   };
 
-  // Extract the lat/lng for InfoWindow positioning
-  const getPositionForInfoWindow = (position) => {
-    return { lat: position.lat(), lng: position.lng() }; // Call the lat() and lng() functions to extract the values
-  };
-
-  // Show loading message if the Google Maps script hasn't loaded yet
-  if (loadError) {
-    return <div>Error loading Google Maps</div>;
-  }
-
-  if (!isLoaded) {
-    return <div>Loading Google Maps...</div>;
-  }
+  if (loadError) return <div>Error loading Google Maps</div>;
+  if (!isLoaded) return <div>Loading Google Maps...</div>;
 
   return (
     <section className="bg-gray-700 py-12">
       <div className="max-w-7xl text-white mx-auto text-center">
-        <h3 className="text-2xl font-bold">pet shops Near You</h3>
-        <div className="h-64 mt-6 rounded-lg overflow-hidden">
-          {isLoaded && (
-            <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={12}>
-              {markers.map((marker, index) => (
-                <Marker
-                  key={index}
-                  position={marker.position}
-                  onClick={() => {
-                    console.log('Marker clicked:', marker);
-                    setSelectedMarker(marker); // Open InfoWindow when clicked
-                  }}
-                />
-              ))}
+        <h3 className="text-2xl font-bold">Pet Shops Near You</h3>
 
-              {/* Show InfoWindow when a marker is selected */}
-              {selectedMarker && selectedMarker.name && selectedMarker.address && (
-                <InfoWindow
-                  position={getPositionForInfoWindow(selectedMarker.position)} // Extract lat/lng values
-                  onCloseClick={() => setSelectedMarker(null)} // Close the InfoWindow
-                >
-                  <div style={{ color: 'black' }}>
-                    <h4>{selectedMarker.name}</h4>
-                    <p>{selectedMarker.address}</p>
-                    <button className=' text-blue-900 font-bold'
-                      onClick={() => {
-                        console.log('Navigating to:', selectedMarker.placeId);
-                        navigate(`/tierheim/${selectedMarker.placeId}`);
-                      }}
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </InfoWindow>
-              )}
-            </GoogleMap>
-          )}
+        <div className="h-72 mt-6 rounded-lg overflow-hidden">
+          <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={12}>
+            {markers.map((marker, index) => (
+              <Marker
+                key={index}
+                position={marker.position}
+                onClick={() => setSelectedMarker(marker)}
+              />
+            ))}
+
+            {selectedMarker && (
+              <InfoWindow
+                position={selectedMarker.position}
+                onCloseClick={() => setSelectedMarker(null)}
+              >
+                <div style={{ color: 'black' }}>
+                  <h4>{selectedMarker.name}</h4>
+                  <p>{selectedMarker.address}</p>
+                  <button
+                    className="text-blue-900 font-bold"
+                    onClick={() => navigate(`/tierheim/${selectedMarker.placeId}`)}
+                  >
+                    View Details
+                  </button>
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
         </div>
-        <button onClick={handleFindPetShop} className="btn btn-success mt-4" disabled={loading}>
+
+        <button
+          onClick={handleFindPetShop}
+          className="btn btn-success mt-4"
+          disabled={loading}
+        >
           {loading ? 'Finding centers...' : 'Find Out Now!'}
         </button>
       </div>
@@ -136,4 +122,4 @@ const PetShops = () => {
   );
 };
 
-export default PetShops;
+export default PetFoodMap;

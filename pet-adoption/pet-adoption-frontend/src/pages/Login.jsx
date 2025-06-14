@@ -1,35 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AuthContext } from '../context/AuthProvider';
 
-const Login = ({ setAuth }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+const Login = () => {
   const [loading, setLoading] = useState(false);
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const email = document.querySelector('#email').value.trim();
+    const password = document.querySelector('#password').value.trim();
+
     try {
-      const response = await axios.post('https://pawsome-homes.onrender.com/api/auth/login', formData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/login`, {
+        email,
+        password,
+      });
+
       const { token } = response.data;
-
-      localStorage.setItem('authToken', token); // Store token
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Set default authorization header
-
-      setAuth(true); // Update auth state
-
+      login(token);
       alert('Login successful');
       navigate('/');
-      window.location.reload(); // Reload the navbar
+      window.location.reload(); // optional; may be removed
     } catch (err) {
       console.error(err);
-      alert('Login failed: Invalid email or password');
+      alert(err.response?.data?.message || 'Login failed.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="max-w-3xl mx-auto p-16 bg-gray-200 shadow-lg rounded-lg mt-20">
@@ -38,25 +41,25 @@ const Login = ({ setAuth }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email Field */}
         <div>
-          <label className="block text-lg font-semibold text-gray-700">Email:</label>
+          <label htmlFor="email" className="block text-lg font-semibold text-gray-700">Email:</label>
           <input
+            id="email"
             type="email"
             placeholder="Enter your email"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
         </div>
 
         {/* Password Field */}
         <div>
-          <label className="block text-lg font-semibold text-gray-700">Password:</label>
+          <label htmlFor="password" className="block text-lg font-semibold text-gray-700">Password:</label>
           <input
+            id="password"
             type="password"
             placeholder="Enter your password"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
-            onChange={(e) => setFormData({ ...formData, password: e.target.value.trim() })}
             required
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
         </div>
 
@@ -64,22 +67,14 @@ const Login = ({ setAuth }) => {
         <div className="text-center">
           <button
             type="submit"
-            className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300"
+            className={`px-6 py-3 bg-green-600 text-white rounded-lg font-semibold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={loading}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </div>
-
-        {/* Forgot Password Link */}
-        {/* <div className="text-center mt-4">
-          <Link to="/ForgotPassword" className="text-sm text-blue-500 hover:underline">
-            Forgot your password?
-          </Link>
-        </div> */}
       </form>
 
-      {/* Sign Up Section */}
       <div className="mt-6 text-center">
         <p className="text-gray-600">
           Don't have an account?{' '}

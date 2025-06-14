@@ -1,37 +1,21 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import { getAllPets } from "../services/PostServicesPets";
 import AdoptionCentersMap from "./AdoptionCentersMap";
 import { AuthContext } from "../context/AuthProvider";
-import Footer from "../components/Footer"; // Adjust the import path
-
-const PetCard = ({ pet }) => {
-  return (
-    <Link to={`/pets/${pet._id}`}>
-      <div className="relative shadow-lg rounded-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-pulse-on-hover">
-        <img
-          src={pet.image}
-          alt={pet.name}
-          className="object-cover h-64 w-full transition-opacity duration-300 hover:opacity-90"
-          style={{ filter: "brightness(1.1)" }}
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col justify-end p-4">
-          <h2 className="text-xl font-bold text-white">
-            {pet.name} - {pet.breed}
-          </h2>
-        </div>
-      </div>
-    </Link>
-  );
-};
+import Footer from "../components/Footer";
+import PetCard from "../components/PetCard";
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [visiblePets, setVisiblePets] = useState(8);
   const [fadeIn, setFadeIn] = useState(false);
   const [pets, setPets] = useState([]);
-  const { token } = useContext(AuthContext); // Access the token from AuthContext
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
+  const { token } = useContext(AuthContext);
+  const carouselRef = useRef(null);
 
   useEffect(() => {
     setFadeIn(true);
@@ -42,7 +26,6 @@ const HomePage = () => {
       const petsData = await getAllPets();
       setPets(petsData);
     };
-
     fetchPets();
   }, []);
 
@@ -60,55 +43,52 @@ const HomePage = () => {
 
   const images = [
     "https://www.parade.pet/assets/images/seasons/spring/pet/facebook.jpg",
-    "https://c.wallhere.com/photos/31/cb/dog_pet_animals_nature_plants_lake_green_relaxing-1521209.jpg!d", // Add more image paths here
+    "https://c.wallhere.com/photos/31/cb/dog_pet_animals_nature_plants_lake_green_relaxing-1521209.jpg!d",
     "https://www.thefarmersdog.com/digest/wp-content/uploads/2021/06/cat-and-dog-top.jpg",
     "https://wallup.net/wp-content/uploads/2016/01/198138-animals-cat-dog.jpg",
     "https://wallpapercave.com/wp/wp2544107.jpg",
   ];
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsFading(true); // Start fade-out
+      setIsFading(true);
       setTimeout(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-        setIsFading(false); // End fade-out
-      }, 0); // Duration of the fade-out
-    }, 4000); // Change image every 4 seconds
+        setIsFading(false);
+      }, 0);
+    }, 4000);
 
-    return () => clearInterval(interval); // Cleanup on component unmount
+    return () => clearInterval(interval);
   }, [images.length]);
 
   return (
-    <div className="space-y-12 mt-20  ">
+    <div className="space-y-12 mt-20">
       {/* Header Section */}
       <section className="relative min-h-[300px] md:min-h-[450px] lg:min-h-[550px] flex items-center justify-center overflow-hidden">
-  <div className="absolute inset-0 transition-opacity duration-1000 ease-in-out">
-    {images.map((image, index) => (
-      <div
-        key={index}
-        className={`w-full h-full absolute top-0 left-0 transition-opacity duration-1000 ease-in-out ${
-          currentImageIndex === index ? (isFading ? "opacity-0" : "opacity-100") : "opacity-0"
-        }`}
-        style={{
-          backgroundImage: `url("${image}")`,
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-      </div>
-    ))}
-  </div>
-  <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-bold text-white z-10 text-center px-4">
-    Your New Best Friend Awaits at Pawsome Homes
-  </h1>
-</section>
+        <div className="absolute inset-0 transition-opacity duration-1000 ease-in-out">
+          {images.map((image, index) => (
+            <div
+              key={index}
+              className={`w-full h-full absolute top-0 left-0 transition-opacity duration-1000 ease-in-out ${
+                currentImageIndex === index ? (isFading ? "opacity-0" : "opacity-100") : "opacity-0"
+              }`}
+              style={{
+                backgroundImage: `url("${image}")`,
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+              }}
+            >
+              <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+            </div>
+          ))}
+        </div>
+        <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-bold text-white z-10 text-center px-4">
+          Your New Best Friend Awaits at Pawsome Homes
+        </h1>
+      </section>
 
-
-      {/* Search Section */}
+      {/* Search */}
       <section id="adopt-pet-section" className="max-w-7xl mx-auto px-4 mt-6 animate-slideDown">
         <div className="relative">
           <input
@@ -122,44 +102,37 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Carousel */}
       <section className="max-w-7xl mx-auto px-4 mt-8 relative">
-  <h2 className="text-2xl font-bold text-white mb-6">All Entries</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">All Entries</h2>
+        <div className="relative flex items-center overflow-hidden">
+          <button
+            onClick={() => carouselRef.current.scrollBy({ left: -300, behavior: 'smooth' })}
+            className="absolute left-0 bg-green-600 text-white rounded-full p-2 shadow-lg z-10"
+          >
+            ❮
+          </button>
 
-  {/* Carousel Container */}
-  <div className="relative flex items-center overflow-hidden"> {/* Changed overflow-x-hidden to overflow-hidden */}
-    {/* Left Navigation Button */}
-    <button
-      onClick={() => document.querySelector('.carousel-items').scrollBy({ left: -300, behavior: 'smooth' })}
-      className="absolute left-0 bg-green-600 text-white rounded-full p-2 shadow-lg z-10"
-    >
-      ❮
-    </button>
+          <div ref={carouselRef} className="carousel-items flex items-center overflow-x-auto scroll-smooth">
+            {filteredPets.map((pet) => (
+              <div key={pet._id} className="flex-shrink-0 w-72 h-80 mx-2">
+                <PetCard pet={pet} />
+              </div>
+            ))}
+          </div>
 
-    {/* Carousel Items */}
-    <div className="carousel-items flex items-center overflow-x-hidden"> {/* Set overflow-x-hidden */}
-      {filteredPets.map((pet, index) => (
-        <div key={index} className="flex-shrink-0 w-72 h-80 mx-2"> {/* Adjusted width and height */}
-          <PetCard pet={pet} />
+          <button
+            onClick={() => carouselRef.current.scrollBy({ left: 300, behavior: 'smooth' })}
+            className="absolute right-0 bg-green-600 text-white rounded-full p-2 shadow-lg z-10"
+          >
+            ❯
+          </button>
         </div>
-      ))}
-    </div>
+      </section>
 
-    {/* Right Navigation Button */}
-    <button
-      onClick={() => document.querySelector('.carousel-items').scrollBy({ left: 300, behavior: 'smooth' })} 
-      className="absolute right-0 bg-green-600 text-white rounded-full p-2 shadow-lg z-10"
-    >
-      ❯
-    </button>
-  </div>
-</section>
-
-
-      {/* Combined Section for "Which Pet is Right for You?" and "Suggested Items" */}
+      {/* Pet Quiz & Suggested Items */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto text-white flex flex-col md:flex-row justify-center items-center space-y-8 md:space-y-0 md:space-x-16 text-center">
-          
-          {/* Find Your Pet Section */}
           <div className="w-full md:w-1/2 flex flex-col items-center space-y-4">
             <h3 className="text-2xl font-bold">Which Pet is Right for You?</h3>
             <div
@@ -175,7 +148,6 @@ const HomePage = () => {
             </Link>
           </div>
 
-          {/* Suggested Items Section */}
           <div className="w-full md:w-1/2 flex flex-col items-center space-y-4">
             <h3 className="text-2xl font-bold">Suggested items to buy for your new friend</h3>
             <div
@@ -193,10 +165,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Map Section with Google Map */}
+      {/* Map Section */}
       <AdoptionCentersMap />
-      
-      {/* Food Section */}
+
+      {/* Food Promo Section */}
       <section className="py-12 text-white text-center">
         <div className="max-w-7xl mx-auto flex flex-col items-center space-y-4">
           <h3 className="text-2xl font-bold">The Right Food for Your Pets!</h3>

@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import PetList from './components/PetList';
 import AboutUs from './pages/AboutUs';
 import HomePage from './pages/HomePage';
@@ -19,32 +18,15 @@ import AdminDashboard from './components/AdminDashboard';
 import TierheimDetails from './pages/TierheimDetails';
 import ChatbotComponent from "./Chatbot/Chatbot";
 import SuggestedItems from './components/SuggestedItems';
-
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    console.log('Token:', token);
-    if (token) {
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      console.log('Decoded token:', decodedToken);
-      if (decodedToken.role === 'Admin') {
-        setIsAdmin(true);
-        console.log('Admin user detected');
-      }
-      setIsAuthenticated(true);
-      console.log('Authenticated user detected');
-    }
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
         <Navbar />
-        
+
         <ToastContainer 
           position="top-right" 
           autoClose={3000} 
@@ -56,13 +38,34 @@ function App() {
           draggable 
           pauseOnHover
         />
+
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<Login setAuth={setIsAuthenticated} />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           {/* <Route path="/ForgotPassword" element={<ForgotPassword />} /> */}
           <Route path="/pets/:id" element={<PetDetails />} />
-          <Route path="/adopt/:id" element={<AdoptionRequestForm />} />
+
+          {/* Protected Route: Logged-in users only */}
+          <Route
+            path="/adopt/:id"
+            element={
+              <ProtectedRoute>
+                <AdoptionRequestForm />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin-only Route */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
           <Route path="/tierheim/:placeId" element={<TierheimDetails />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<ContactUs />} />
@@ -70,9 +73,8 @@ function App() {
           <Route path="/food-recommendation" element={<FoodRecommendation />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/suggested-items" element={<SuggestedItems />} />
-          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
-        {/* ChatBotComponent here makes it appear globally */}
+
         <ChatbotComponent />
       </Router>
     </AuthProvider>
