@@ -42,7 +42,7 @@ const AdoptionCentersMap = () => {
 
         if (window.google && window.google.maps) {
           const map = new window.google.maps.Map(document.createElement('div'));
-          const service = new window.google.maps.places.PlacesService(map);
+          const service = new window.google.maps.places.Place(map);
 
           const request = {
             location: { lat, lng },
@@ -51,7 +51,7 @@ const AdoptionCentersMap = () => {
           };
           
           service.nearbySearch(request, (results, status) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+            if (status === window.google.maps.places.PlaceStatus.OK) {
               const newMarkers = results.map((place) => ({
                 position: place.geometry.location,
                 name: place.name,
