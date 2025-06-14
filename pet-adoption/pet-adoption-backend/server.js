@@ -26,14 +26,15 @@ const allowedOrigins = [
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true  // Enable sending cookies or authentication headers with requests
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.url}`);
-  next();
-});
-
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => logger.info('MongoDB connected'))
