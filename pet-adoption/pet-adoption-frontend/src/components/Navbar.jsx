@@ -54,7 +54,7 @@ const Navbar = () => {
           </svg>
         </label>
         {dropdownOpen && (
-          <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 text-black rounded-box w-52">
+          <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 text-white rounded-box w-52">
             <li><Link to="/" onClick={handleMenuItemClick}>Home</Link></li>
             <li><Link to="/about" onClick={handleMenuItemClick}>About Us</Link></li>
             <li><Link to="/contact" onClick={handleMenuItemClick}>Contact Us</Link></li>
