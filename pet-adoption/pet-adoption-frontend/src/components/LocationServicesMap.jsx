@@ -135,25 +135,27 @@ const LocationServicesMap = ({
   }, []);
 
   // Enhanced place details extraction
-  const extractPlaceDetails = useCallback((place) => {
-    return {
-      position: {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      },
-      placeId: place.place_id,
-      name: place.name || 'Unknown',
-      address: place.vicinity || place.formatted_address || 'Address not available',
-      rating: place.rating || null,
-      userRatingsTotal: place.user_ratings_total || 0,
-      priceLevel: place.price_level || null,
-      isOpen: place.opening_hours?.open_now || null,
-      website: place.website || null,
-      phoneNumber: place.formatted_phone_number || null,
-      photos: place.photos ? place.photos.slice(0, 3) : [],
-      types: place.types || [],
-    };
-  }, []);
+const extractPlaceDetails = useCallback((place) => {
+  return {
+    id: String(place.place_id || ''), // <- this guarantees it's a string
+    position: {
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng(),
+    },
+    placeId: place.place_id,
+    name: place.name || 'Unknown',
+    address: place.vicinity || place.formatted_address || 'Address not available',
+    rating: place.rating || null,
+    userRatingsTotal: place.user_ratings_total || 0,
+    priceLevel: place.price_level || null,
+    isOpen: place.opening_hours?.opening_hours || null,
+    website: place.website || null,
+    phoneNumber: place.formatted_phone_number || null,
+    photos: place.photos ? place.photos.slice(0, 3) : [],
+    types: place.types || [],
+  };
+}, []);
+
 
   // Calculate distance between two points
   const calculateDistance = useCallback((lat1, lng1, lat2, lng2) => {
@@ -457,12 +459,14 @@ const LocationServicesMap = ({
                       </p>
                     )}
 
-                    {selectedMarker.isOpen !== null && (
+                    {selectedMarker.openingHours && (
                       <p className="flex items-center">
                         <span className="mr-2">🕒</span>
-                        <span className={selectedMarker.isOpen ? 'text-green-600' : 'text-red-600'}>
-                          {selectedMarker.isOpen ? 'Open now' : 'Closed'}
-                        </span>
+                        {selectedMarker.openingHours.isOpen() ? (
+                          <span className="text-green-600">Open now</span>
+                        ) : (
+                          <span className="text-red-600">Closed</span>
+                        )}
                       </p>
                     )}
 
