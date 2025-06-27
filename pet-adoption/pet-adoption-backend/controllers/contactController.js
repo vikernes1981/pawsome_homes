@@ -73,16 +73,16 @@ class ContactController {
       .matches(/^[\+]?[1-9][\d]{0,15}$/)
       .withMessage('Invalid phone number format'),
     
-    body('priority')
-      .optional()
-      .isIn(['low', 'medium', 'high', 'urgent'])
-      .withMessage('Priority must be one of: low, medium, high, urgent'),
-    
     body('category')
       .optional()
-      .isIn(['general', 'adoption', 'support', 'complaint', 'feedback', 'partnership'])
-      .withMessage('Category must be one of: general, adoption, support, complaint, feedback, partnership')
-  ];
+      .isIn(['general_inquiry', 'adoption_question', 'pet_care_advice', 'volunteering', 'donation', 'complaint', 'compliment', 'technical_issue', 'partnership', 'media_inquiry', 'other'])
+      .withMessage('Category must be one of: general_inquiry, adoption_question, pet_care_advice, volunteering, donation, complaint, compliment, technical_issue, partnership, media_inquiry, other'),
+
+    body('priority')
+      .optional()
+      .isIn(['low', 'normal', 'high', 'urgent'])  // Changed 'medium' to 'normal'
+      .withMessage('Priority must be one of: low, normal, high, urgent'),
+    ];
 
   /**
    * Advanced spam detection
@@ -180,25 +180,28 @@ class ContactController {
   /**
    * Auto-categorize messages based on content
    */
-  static categorizeMessage(message, subject = '') {
-    const text = `${message} ${subject}`.toLowerCase();
-    
-    const categories = {
-      adoption: ['adopt', 'pet', 'animal', 'application', 'meet', 'visit'],
-      support: ['help', 'problem', 'issue', 'bug', 'error', 'technical'],
-      complaint: ['complaint', 'dissatisfied', 'unhappy', 'poor', 'bad'],
-      feedback: ['feedback', 'suggestion', 'improve', 'feature', 'idea'],
-      partnership: ['partner', 'collaboration', 'business', 'sponsor']
-    };
+static categorizeMessage(message, subject = '') {
+  const text = `${message} ${subject}`.toLowerCase();
+  
+  const categories = {
+    adoption_question: ['adopt', 'pet', 'animal', 'application', 'meet', 'visit'],
+    technical_issue: ['help', 'problem', 'issue', 'bug', 'error', 'technical'],
+    complaint: ['complaint', 'dissatisfied', 'unhappy', 'poor', 'bad'],
+    compliment: ['great', 'excellent', 'wonderful', 'amazing', 'love', 'thank'],
+    partnership: ['partner', 'collaboration', 'business', 'sponsor', 'shelter'],
+    media_inquiry: ['press', 'media', 'news', 'interview', 'journalist'],
+    volunteering: ['volunteer', 'help out', 'assist', 'contribute'],
+    donation: ['donate', 'donation', 'give', 'contribute', 'support']
+  };
 
-    for (const [category, keywords] of Object.entries(categories)) {
-      if (keywords.some(keyword => text.includes(keyword))) {
-        return category;
-      }
+  for (const [category, keywords] of Object.entries(categories)) {
+    if (keywords.some(keyword => text.includes(keyword))) {
+      return category;
     }
-
-    return 'general';
   }
+
+  return 'general_inquiry';
+}
 
   /**
    * Send contact message with comprehensive validation and processing
@@ -229,7 +232,7 @@ class ContactController {
       const userId = req.user?.id;
 
       // Spam detection
-      const spamCheck = this.detectSpam({ name, email, message, subject });
+      const spamCheck = ContactController.detectSpam({ name, email, message, subject });
       const isSpam = spamCheck.score >= 25;
 
       if (isSpam) {
@@ -249,11 +252,11 @@ class ContactController {
       }
 
       // Get user context
-      const userContext = await this.getUserContext(email, userId);
+      const userContext = await ContactController.getUserContext(email, userId);
 
       // Auto-categorize if not provided
-      const finalCategory = category || this.categorizeMessage(message, subject);
-      const finalPriority = priority || (userContext.userRole === 'admin' ? 'high' : 'medium');
+      const finalCategory = category || ContactController.categorizeMessage(message, subject);
+      const finalPriority = priority || (userContext.userRole === 'admin' ? 'high' : 'normal');
 
       // Create contact message
       const contactData = {
@@ -270,7 +273,8 @@ class ContactController {
           userAgent: req.get('User-Agent'),
           userContext,
           spamScore: spamCheck.score,
-          autoCategori      },
+          autoCategorized: finalCategory !== category
+        },
         status: 'new'
       };
 

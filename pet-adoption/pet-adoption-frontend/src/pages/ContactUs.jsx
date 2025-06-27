@@ -1,18 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
-import { 
-  FaEnvelope, 
-  FaPhone, 
-  FaMapMarkerAlt, 
-  FaClock, 
-  FaPaperPlane,
-  FaFacebook,
-  FaTwitter,
-  FaInstagram,
-  FaLinkedin,
-  FaCheckCircle,
-  FaExclamationTriangle
-} from 'react-icons/fa';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -98,7 +85,7 @@ const ContactUs = () => {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      await axios.post(`${apiUrl}/contact`, {
+      await axios.post(`${apiUrl}/api/contact`, {
         ...formData,
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent
@@ -134,25 +121,25 @@ const ContactUs = () => {
 
   const contactMethods = [
     {
-      icon: <FaEnvelope className="text-2xl text-green-600" />,
+      icon: "📧",
       title: "Email Us",
       details: "support@pawsomehomes.com",
       description: "For general inquiries and support"
     },
     {
-      icon: <FaPhone className="text-2xl text-green-600" />,
+      icon: "📞",
       title: "Call Us",
       details: "+1 (555) 123-PETS",
       description: "Monday - Friday, 9:00 AM - 6:00 PM EST"
     },
     {
-      icon: <FaMapMarkerAlt className="text-2xl text-green-600" />,
+      icon: "📍",
       title: "Visit Us",
       details: "123 Pet Haven Street, Animal City, AC 12345",
       description: "By appointment only"
     },
     {
-      icon: <FaClock className="text-2xl text-green-600" />,
+      icon: "⏰",
       title: "Response Time",
       details: "Within 24 hours",
       description: "We aim to respond to all inquiries quickly"
@@ -161,27 +148,26 @@ const ContactUs = () => {
 
   const categories = [
     { value: '', label: 'Select a category...' },
-    { value: 'adoption', label: 'Pet Adoption Inquiry' },
-    { value: 'support', label: 'Technical Support' },
-    { value: 'shelter', label: 'Shelter Partnership' },
-    { value: 'feedback', label: 'Feedback & Suggestions' },
-    { value: 'press', label: 'Press & Media' },
-    { value: 'other', label: 'Other' }
+    { value: 'adoption_question', label: '🐾 Pet Adoption Inquiry' },
+    { value: 'technical_issue', label: '🛠️ Technical Support' },
+    { value: 'partnership', label: '🏠 Shelter Partnership' },
+    { value: 'complaint', label: '💭 Feedback & Suggestions' },
+    { value: 'media_inquiry', label: '📰 Press & Media' },
+    { value: 'other', label: '❓ Other' }
   ];
-
   const socialLinks = [
-    { icon: <FaFacebook />, url: "#", label: "Facebook" },
-    { icon: <FaTwitter />, url: "#", label: "Twitter" },
-    { icon: <FaInstagram />, url: "#", label: "Instagram" },
-    { icon: <FaLinkedin />, url: "#", label: "LinkedIn" }
+    { icon: "📘", url: "#", label: "Facebook" },
+    { icon: "🐦", url: "#", label: "Twitter" },
+    { icon: "📷", url: "#", label: "Instagram" },
+    { icon: "💼", url: "#", label: "LinkedIn" }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-16">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-16 mt-20">
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Header Section */}
-        <div className="text-center mb-16 mt-4">
+        <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-800 mb-6">Get in Touch</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Have questions about adoption, need support, or want to partner with us? 
@@ -198,7 +184,7 @@ const ContactUs = () => {
               <div className="space-y-6">
                 {contactMethods.map((method, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 mt-1">
+                    <div className="text-2xl mt-1">
                       {method.icon}
                     </div>
                     <div>
@@ -220,7 +206,7 @@ const ContactUs = () => {
                     key={index}
                     href={social.url}
                     aria-label={social.label}
-                    className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                    className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all duration-300 transform hover:scale-110 text-xl"
                   >
                     {social.icon}
                   </a>
@@ -228,7 +214,7 @@ const ContactUs = () => {
               </div>
               
               <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">Quick Tip!</h4>
+                <h4 className="font-semibold text-green-800 mb-2">💡 Quick Tip!</h4>
                 <p className="text-sm text-green-700">
                   For urgent adoption inquiries, call us directly. For general questions, 
                   email us and we'll respond within 24 hours.
@@ -245,7 +231,7 @@ const ContactUs = () => {
               {/* Success/Error Messages */}
               {successMessage && (
                 <div className="bg-green-50 border border-green-200 text-green-700 p-4 mb-6 rounded-xl flex items-start space-x-3">
-                  <FaCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-green-500 mt-0.5 text-xl">✅</span>
                   <div>
                     <p className="font-medium">Message Sent Successfully!</p>
                     <p className="text-sm">{successMessage}</p>
@@ -255,7 +241,7 @@ const ContactUs = () => {
 
               {errorMessage && (
                 <div className="bg-red-50 border border-red-200 text-red-700 p-4 mb-6 rounded-xl flex items-start space-x-3">
-                  <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-red-500 mt-0.5 text-xl">⚠️</span>
                   <div>
                     <p className="font-medium">Submission Error</p>
                     <p className="text-sm">{errorMessage}</p>
@@ -285,7 +271,7 @@ const ContactUs = () => {
                     />
                     {formErrors.name && (
                       <p className="text-red-500 text-sm mt-1 flex items-center">
-                        <FaExclamationTriangle className="mr-1" />
+                        <span className="mr-1">⚠️</span>
                         {formErrors.name}
                       </p>
                     )}
@@ -310,7 +296,7 @@ const ContactUs = () => {
                     />
                     {formErrors.email && (
                       <p className="text-red-500 text-sm mt-1 flex items-center">
-                        <FaExclamationTriangle className="mr-1" />
+                        <span className="mr-1">⚠️</span>
                         {formErrors.email}
                       </p>
                     )}
@@ -338,7 +324,7 @@ const ContactUs = () => {
                     />
                     {formErrors.subject && (
                       <p className="text-red-500 text-sm mt-1 flex items-center">
-                        <FaExclamationTriangle className="mr-1" />
+                        <span className="mr-1">⚠️</span>
                         {formErrors.subject}
                       </p>
                     )}
@@ -367,7 +353,7 @@ const ContactUs = () => {
                     </select>
                     {formErrors.category && (
                       <p className="text-red-500 text-sm mt-1 flex items-center">
-                        <FaExclamationTriangle className="mr-1" />
+                        <span className="mr-1">⚠️</span>
                         {formErrors.category}
                       </p>
                     )}
@@ -395,7 +381,7 @@ const ContactUs = () => {
                   <div className="flex justify-between items-center mt-2">
                     {formErrors.message ? (
                       <p className="text-red-500 text-sm flex items-center">
-                        <FaExclamationTriangle className="mr-1" />
+                        <span className="mr-1">⚠️</span>
                         {formErrors.message}
                       </p>
                     ) : (
@@ -427,7 +413,7 @@ const ContactUs = () => {
                       </>
                     ) : (
                       <>
-                        <FaPaperPlane />
+                        <span>📤</span>
                         <span>Send Message</span>
                       </>
                     )}
@@ -460,9 +446,12 @@ const ContactUs = () => {
                 answer: "Contact us through this form or email us directly. We'll guide you through our partnership program."
               }
             ].map((faq, index) => (
-              <div key={index} className="bg-gray-50 p-6 rounded-xl">
-                <h3 className="font-bold text-gray-800 mb-3">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
+              <div key={index} className="bg-gray-50 p-6 rounded-xl hover:bg-gray-100 transition-colors">
+                <h3 className="font-bold text-gray-800 mb-3 flex items-start">
+                  <span className="mr-2 text-green-600">❓</span>
+                  {faq.question}
+                </h3>
+                <p className="text-gray-600 ml-6">{faq.answer}</p>
               </div>
             ))}
           </div>

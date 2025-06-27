@@ -43,7 +43,7 @@ const PetList = () => {
       setLoading(true);
       setError(null);
       
-      const { data } = await axios.get(`${API_URL}/pets`, {
+      const { data } = await axios.get(`${API_URL}/api/pets`, {
         timeout: 10000,
         headers: {
           'Content-Type': 'application/json'
