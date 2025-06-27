@@ -5,23 +5,38 @@ export const createRequest = async (req, res) => {
     const newRequest = new AdoptionRequest({
       user: req.body.user,
       pet: req.body.pet,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
-      phone: req.body.phone,
+      applicantName: req.body.applicantName,
+      applicantEmail: req.body.applicantEmail,
+      applicantPhone: req.body.applicantPhone,
       address: {
         street: req.body.address.street,
         city: req.body.address.city,
         region: req.body.address.region,
         zip: req.body.address.zip,
+        country: req.body.address.country || 'United States'
       },
-      message: req.body.message,
-      when: req.body.when,
+      housingType: req.body.housingType,
+      hasYard: req.body.hasYard || false,
+      yardDetails: req.body.yardDetails,
+      hasPets: req.body.hasPets || false,
+      currentPets: req.body.currentPets,
+      petExperience: req.body.petExperience,
+      reason: req.body.reason,
+      preferredMeetingTime: req.body.preferredMeetingTime
     });
-    console.log('Incoming request payload:', req.body); // ADD THIS
+    
+    console.log('Incoming request payload:', req.body);
     await newRequest.save();
-    res.status(201).json(newRequest);
+    res.status(201).json({
+      success: true,
+      message: 'Adoption request created successfully',
+      data: newRequest
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating adoption request:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };

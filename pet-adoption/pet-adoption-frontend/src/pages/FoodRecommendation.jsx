@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import PetFoodMap from './PetFoodMap';
+import LocationServicesMap from '../components/LocationServicesMap';
 import { generateRecommendation } from '../utils/foodUtils';
 
 const FoodRecommendation = () => {
@@ -99,7 +99,15 @@ const FoodRecommendation = () => {
       </form>
 
       <br />
-      <PetFoodMap />
+      
+      {/* Pet Food Stores Map - Updated with new unified component */}
+      <LocationServicesMap 
+        initialType="petshop"
+        height="h-64"
+        showTypeSelector={false}
+        showStats={true}
+        className="bg-gray-700"
+      />
 
       {foodRecommendation && (
         <div className="bg-green-100 text-green-700 p-4 mt-6 rounded-lg shadow-md">

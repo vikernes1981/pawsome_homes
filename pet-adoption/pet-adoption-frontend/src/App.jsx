@@ -20,9 +20,11 @@ import ChatbotComponent from "./Chatbot/Chatbot";
 import SuggestedItems from './components/SuggestedItems';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import { HelmetProvider } from 'react-helmet-async';
 
 function App() {
   return (
+    <HelmetProvider>
     <AuthProvider>
       <Router>
         <Navbar />
@@ -78,6 +80,7 @@ function App() {
         <ChatbotComponent />
       </Router>
     </AuthProvider>
+    </HelmetProvider>
   );
 }
 
